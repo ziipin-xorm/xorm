@@ -1016,7 +1016,7 @@ func TestGetBytesVars(t *testing.T) {
 	type MyID int64
 	var myID MyID
 
-	has, err = testEngine.Table("get_bytes_vars").Get(&myID)
+	has, err = testEngine.Table("get_bytes_vars").Select("id").Desc("id").Get(&myID)
 	assert.NoError(t, err)
 	assert.True(t, has)
 	assert.EqualValues(t, gbv.Id, myID)
