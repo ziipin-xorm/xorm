@@ -119,6 +119,9 @@ func (session *Session) innerInsertMulti(rowsSlicePtr interface{}) (int64, error
 	var args []interface{}
 	var cols []*core.Column
 
+	// 多个写入不管成功失败，都需要清理afterClosures
+	defer cleanupProcessorsClosures(&session.afterClosures)
+
 	for i := 0; i < size; i++ {
 		v := sliceValue.Index(i)
 		vv := reflect.Indirect(v)
@@ -336,6 +339,8 @@ func (session *Session) innerInsert(bean interface{}) (int64, error) {
 		closure(bean)
 	}
 	cleanupProcessorsClosures(&session.beforeClosures) // cleanup after used
+
+	defer cleanupProcessorsClosures(&session.afterClosures) // 无论结果如何，都重置closure
 
 	if processor, ok := interface{}(bean).(BeforeInsertProcessor); ok {
 		processor.BeforeInsert()

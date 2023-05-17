@@ -179,6 +179,7 @@ func (session *Session) Update(bean interface{}, condiBean ...interface{}) (int6
 			return 0, ErrTableNotFound
 		}
 
+		defer cleanupProcessorsClosures(&session.afterClosures) // 结构化的处理方法里，不管最后结果如何，都进行一次重置
 		if session.statement.ColumnStr == "" {
 			colNames, args = session.statement.buildUpdates(bean, false, false,
 				false, false, true)
