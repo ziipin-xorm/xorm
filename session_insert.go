@@ -92,6 +92,9 @@ func (session *Session) insertMultipleStruct(rowsSlicePtr interface{}) (int64, e
 		args           []interface{}
 	)
 
+	// 多个写入不管成功失败，都需要清理afterClosures
+	defer cleanupProcessorsClosures(&session.afterClosures)
+
 	for i := 0; i < size; i++ {
 		v := sliceValue.Index(i)
 		var vv reflect.Value
@@ -271,6 +274,8 @@ func (session *Session) insertStruct(bean interface{}) (int64, error) {
 		closure(bean)
 	}
 	cleanupProcessorsClosures(&session.beforeClosures) // cleanup after used
+
+	defer cleanupProcessorsClosures(&session.afterClosures) // 无论结果如何，都重置closure
 
 	if processor, ok := interface{}(bean).(BeforeInsertProcessor); ok {
 		processor.BeforeInsert()
